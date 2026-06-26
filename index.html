@@ -1,0 +1,1590 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>气候变化教学工具箱 · 完整版</title>
+    <!-- Chart.js 用于全球影响图表 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js">
+    </script>
+    <style>
+        /* ===== 全局样式 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, 'Microsoft YaHei', sans-serif;
+            background: #eef3f7;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 16px;
+        }
+        .app-container {
+            max-width: 1100px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 32px;
+            box-shadow: 0 12px 40px rgba(0, 20, 30, 0.08);
+            border: 1px solid #e6edf2;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            max-height: 98vh;
+        }
+        .app-header {
+            padding: 16px 24px 0 24px;
+            border-bottom: 2px solid #eaf0f5;
+            flex-shrink: 0;
+            background: #ffffff;
+        }
+        .app-header h1 {
+            font-weight: 300;
+            font-size: 22px;
+            color: #1a2d3c;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .app-header h1 strong {
+            color: #1a5cff;
+            font-weight: 600;
+        }
+        .app-header h1 small {
+            font-size: 13px;
+            font-weight: 400;
+            color: #7a9aa8;
+        }
+        .tab-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            padding-bottom: 2px;
+            overflow-x: auto;
+        }
+        .tab-btn {
+            padding: 8px 18px;
+            border: none;
+            background: transparent;
+            border-radius: 30px 30px 0 0;
+            font-weight: 500;
+            font-size: 13px;
+            color: #5a7a8a;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+        .tab-btn:hover {
+            background: #f0f6fc;
+            color: #1a3a4a;
+        }
+        .tab-btn.active {
+            background: #eef2ff;
+            color: #1a5cff;
+            font-weight: 600;
+            box-shadow: inset 0 -2px 0 #1a5cff;
+        }
+        .tab-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 24px 24px 24px;
+            background: #fafdff;
+        }
+        .tab-pane {
+            display: none;
+            animation: fadeIn 0.25s ease;
+        }
+        .tab-pane.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0.4;
+                transform: translateY(6px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .tool-card {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 20px 24px;
+            border: 1px solid #eaf0f5;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+            margin-bottom: 16px;
+        }
+        .tool-card h3 {
+            font-weight: 500;
+            font-size: 17px;
+            color: #1a3a4a;
+            margin-bottom: 12px;
+        }
+        .tool-card .sub {
+            color: #7a9aa8;
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+        .slider-group {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 16px 28px;
+            margin: 8px 0 12px;
+        }
+        .slider-group label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+            color: #1a3a4a;
+            font-size: 14px;
+            flex: 1;
+            min-width: 160px;
+        }
+        .slider-group label span:last-child {
+            color: #1a5cff;
+            font-weight: 700;
+            min-width: 60px;
+            text-align: right;
+        }
+        .slider-group input[type="range"] {
+            flex: 1;
+            height: 5px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #d0dee8;
+            border-radius: 10px;
+            outline: none;
+            min-width: 80px;
+        }
+        .slider-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #1a5cff;
+            cursor: pointer;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 8px rgba(26, 92, 255, 0.2);
+        }
+        .btn {
+            padding: 8px 22px;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+        }
+        .btn-primary {
+            background: #1a5cff;
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: #0f4ad0;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(26, 92, 255, 0.2);
+        }
+        .btn-outline {
+            background: transparent;
+            color: #5a7a8a;
+            border: 1px solid #d0dee8;
+        }
+        .btn-outline:hover {
+            background: #f0f6fc;
+        }
+        .btn-sm {
+            padding: 5px 14px;
+            font-size: 12px;
+        }
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+            margin: 10px 0;
+        }
+        .metric-item {
+            background: #f6fafd;
+            border-radius: 14px;
+            padding: 12px 10px;
+            text-align: center;
+            border: 1px solid #eaf0f5;
+        }
+        .metric-item .val {
+            font-size: 26px;
+            font-weight: 700;
+            color: #1a2d3c;
+        }
+        .metric-item .val.warning {
+            color: #d4a02b;
+        }
+        .metric-item .val.danger {
+            color: #b54a3a;
+        }
+        .metric-item .lbl {
+            font-size: 12px;
+            color: #7a9aa8;
+            margin-top: 2px;
+        }
+        .sort-area {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-height: 200px;
+            margin: 10px 0;
+        }
+        .sort-item {
+            background: #fafdfb;
+            border: 2px solid #d5e8e0;
+            border-radius: 12px;
+            padding: 10px 16px;
+            cursor: grab;
+            font-size: 14px;
+            color: #1a3d30;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: 0.15s;
+            user-select: none;
+        }
+        .sort-item:hover {
+            border-color: #8bb8a8;
+            background: #f6faf8;
+        }
+        .sort-item:active {
+            cursor: grabbing;
+        }
+        .sort-item .num {
+            font-weight: 700;
+            color: #8bb8a8;
+            min-width: 24px;
+            font-size: 13px;
+        }
+        .sort-item.dragging {
+            opacity: 0.3;
+            border-style: dashed;
+        }
+        .sort-item.drag-over {
+            border-color: #1a5cff;
+            background: #eef2ff;
+        }
+        .sort-item.correct {
+            border-color: #2b8a5e;
+            background: #eaf5ef;
+        }
+        .sort-item.wrong {
+            border-color: #d97a4a;
+            background: #fdf0ea;
+        }
+        .role-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin: 12px 0;
+        }
+        .role-card {
+            background: #fafdff;
+            border-radius: 16px;
+            padding: 12px 14px;
+            border: 2px solid #eaf0f5;
+            transition: 0.2s;
+        }
+        .role-card .header {
+            font-weight: 600;
+            font-size: 14px;
+            color: #1a2d3c;
+            margin-bottom: 4px;
+        }
+        .role-card .desc {
+            font-size: 11px;
+            color: #7a9aa8;
+            margin-bottom: 8px;
+        }
+        .role-card select {
+            width: 100%;
+            padding: 4px 6px;
+            border-radius: 8px;
+            border: 1px solid #d0dee8;
+            font-size: 12px;
+            font-family: inherit;
+            background: white;
+            margin-bottom: 3px;
+            outline: none;
+        }
+        .role-card select:focus {
+            border-color: #1a5cff;
+        }
+        .role-card .status {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            background: #f0f6fc;
+            color: #4a6a7a;
+            text-align: center;
+            margin-top: 4px;
+        }
+        .feedback-box {
+            background: #f0f6fc;
+            border-radius: 14px;
+            padding: 14px 18px;
+            border-left: 4px solid #1a5cff;
+            min-height: 60px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #1a3a4a;
+            margin-top: 10px;
+        }
+        .feedback-box .score {
+            font-weight: 700;
+            color: #1a5cff;
+        }
+        .agreement-bar {
+            height: 6px;
+            background: #eaf0f5;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        .agreement-bar .fill {
+            height: 100%;
+            border-radius: 10px;
+            background: linear-gradient(to right, #d4a02b, #1f8a5a);
+            transition: 0.4s;
+            width: 0%;
+        }
+
+        /* ===== 碳足迹专用样式 ===== */
+        .footprint-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 24px;
+        }
+        .fp-card {
+            background: #fafdff;
+            border-radius: 16px;
+            padding: 16px 20px;
+            border: 1px solid #eaf0f5;
+            margin-bottom: 14px;
+        }
+        .fp-card .fp-title {
+            font-weight: 600;
+            font-size: 15px;
+            color: #1a3a4a;
+            margin-bottom: 10px;
+        }
+        .fp-item {
+            margin-bottom: 12px;
+        }
+        .fp-item:last-child {
+            margin-bottom: 0;
+        }
+        .fp-item label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: #1a3a4a;
+            font-weight: 500;
+        }
+        .fp-item label span:last-child {
+            color: #1a5cff;
+            background: #eef2ff;
+            padding: 0 12px;
+            border-radius: 30px;
+            font-size: 13px;
+        }
+        .fp-item input[type="range"] {
+            width: 100%;
+            height: 5px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #d0dee8;
+            border-radius: 10px;
+            outline: none;
+            margin: 4px 0;
+        }
+        .fp-item input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #1a5cff;
+            cursor: pointer;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 8px rgba(26, 92, 255, 0.2);
+        }
+        .fp-item select {
+            width: 100%;
+            padding: 8px 12px;
+            border-radius: 40px;
+            border: 1px solid #d0dee8;
+            font-size: 14px;
+            font-weight: 500;
+            color: #1a3a4a;
+            background: white;
+            cursor: pointer;
+            outline: none;
+            font-family: inherit;
+        }
+        .fp-item select:focus {
+            border-color: #1a5cff;
+        }
+        .fp-radio-group {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+        .fp-radio-group input[type="radio"] {
+            display: none;
+        }
+        .fp-radio-group label {
+            background: #f6fafd;
+            padding: 4px 16px;
+            border-radius: 40px;
+            font-size: 13px;
+            color: #3a5a6a;
+            border: 1px solid #dce8ef;
+            cursor: pointer;
+            transition: 0.2s;
+            font-weight: 500;
+        }
+        .fp-radio-group input[type="radio"]:checked+label {
+            background: #1a5cff;
+            color: white;
+            border-color: #1a5cff;
+            box-shadow: 0 4px 12px rgba(26, 92, 255, 0.25);
+        }
+        .fp-radio-group label:hover {
+            transform: scale(1.02);
+        }
+
+        .fp-result {
+            background: #1a3d30;
+            border-radius: 24px;
+            padding: 24px 22px;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .fp-result .fp-big {
+            text-align: center;
+            padding: 8px 0;
+        }
+        .fp-result .fp-big .number {
+            font-size: 56px;
+            font-weight: 700;
+            color: #b5e6b5;
+            letter-spacing: -2px;
+        }
+        .fp-result .fp-big .unit {
+            font-size: 18px;
+            color: #a0c9a8;
+            margin-left: 4px;
+        }
+        .fp-result .fp-big .label {
+            font-size: 15px;
+            color: #b6d5be;
+            margin-top: 4px;
+        }
+        .fp-result .fp-tree {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 40px;
+            padding: 12px 16px;
+            text-align: center;
+            margin: 10px 0 14px;
+        }
+        .fp-result .fp-tree span {
+            font-size: 30px;
+            font-weight: 700;
+            color: #8fdb9e;
+        }
+        .fp-result .fp-tree small {
+            font-size: 14px;
+            color: #c2ddc7;
+        }
+        .fp-result .fp-msg {
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 14px;
+            padding: 14px 16px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #d4eee1;
+            border-left: 3px solid #5cb885;
+        }
+        .fp-result .fp-reset {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 40px;
+            padding: 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+            color: #cdede0;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 12px;
+        }
+        .fp-result .fp-reset:hover {
+            background: #5cb885;
+            color: #0f2b1c;
+        }
+        .fp-note {
+            font-size: 11px;
+            color: #7a9aa8;
+            text-align: center;
+            margin-top: 12px;
+            border-top: 1px solid #eaf0f5;
+            padding-top: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .app-container {
+                max-height: none;
+                border-radius: 20px;
+            }
+            .tab-content {
+                padding: 14px;
+            }
+            .app-header {
+                padding: 12px 16px 0 16px;
+            }
+            .app-header h1 {
+                font-size: 18px;
+            }
+            .tab-btn {
+                font-size: 12px;
+                padding: 6px 12px;
+            }
+            .metric-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .role-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .footprint-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        @media (max-width: 480px) {
+            .role-grid {
+                grid-template-columns: 1fr;
+            }
+            .slider-group label {
+                flex-wrap: wrap;
+                gap: 4px;
+            }
+            .tab-btn {
+                font-size: 11px;
+                padding: 4px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 顶栏 -->
+        <div class="app-header">
+            <h1>
+                🌍 气候变化 · <strong>教学工具箱</strong>
+                <small>6 个互动工具 · 课堂探究</small>
+            </h1>
+            <div class="tab-nav" id="tabNav">
+                <button class="tab-btn active" data-tab="tab1">🌡️ 临界点</button>
+                <button class="tab-btn" data-tab="tab2">🔄 碳循环</button>
+                <button class="tab-btn" data-tab="tab3">📊 全球影响</button>
+                <button class="tab-btn" data-tab="tab4">🧩 因果链</button>
+                <button class="tab-btn" data-tab="tab5">🤝 气候谈判</button>
+                <button class="tab-btn" data-tab="tab6">🌍 碳足迹</button>
+            </div>
+        </div>
+        <!-- 内容 -->
+        <div class="tab-content">
+
+            <!-- ======================================================= -->
+            <!-- TAB 1 临界点 -->
+            <!-- ======================================================= -->
+            <div class="tab-pane active" id="tab1">
+                <div class="tool-card">
+                    <h3>🌡️ 气候临界点可视化</h3>
+                    <div class="sub">拖动滑块 · 观察不同温升幅度下的连锁反应</div>
+                    <div class="slider-group">
+                        <label>🌍 全球温升 <span id="tp1_tempLabel">+1.2 °C</span>
+                            <input type="range" id="tp1_slider" min="0" max="50" value="12" step="1" />
+                        </label>
+                    </div>
+                    <div id="tp1_impactBox" style="background:#f6fafd;border-radius:16px;padding:16px 20px;border:1px solid #eaf0f5;min-height:100px;">
+                        <div style="font-size:13px;font-weight:600;letter-spacing:1px;color:#5cad6f;" id="tp1_levelLabel">● 低风险</div>
+                        <div style="font-size:18px;font-weight:600;color:#1a2d3c;margin:4px 0;" id="tp1_title">当前状态 (1.2°C)</div>
+                        <div style="color:#3a5a6a;font-size:14px;line-height:1.6;" id="tp1_detail">全球平均气温较工业革命前上升约 1.2°C。极端天气事件频率增加，但尚未触发大规模不可逆变化。</div>
+                        <div style="display:flex;gap:4px;margin-top:10px;flex-wrap:wrap;" id="tp1_riskBar">
+                            <div style="flex:1;height:6px;border-radius:6px;background:#2b7a4a;min-width:20px;"></div>
+                            <div style="flex:1;height:6px;border-radius:6px;background:#1f3a42;min-width:20px;"></div>
+                            <div style="flex:1;height:6px;border-radius:6px;background:#1f3a42;min-width:20px;"></div>
+                            <div style="flex:1;height:6px;border-radius:6px;background:#1f3a42;min-width:20px;"></div>
+                            <div style="flex:1;height:6px;border-radius:6px;background:#1f3a42;min-width:20px;"></div>
+                            <div style="flex:1;height:6px;border-radius:6px;background:#1f3a42;min-width:20px;"></div>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;font-size:10px;color:#6e939e;margin-top:2px;">
+                            <span>安全</span><span>警戒</span><span>危险</span><span>临界</span>
+                        </div>
+                    </div>
+                    <div style="font-size:11px;color:#7a9aa8;margin-top:10px;text-align:center;">⚡ 基于 IPCC 科学评估 · 各阈值代表关键气候临界点</div>
+                </div>
+            </div>
+
+            <!-- ======================================================= -->
+            <!-- TAB 2 碳循环 -->
+            <!-- ======================================================= -->
+            <div class="tab-pane" id="tab2">
+                <div class="tool-card">
+                    <h3>🔄 碳循环失衡模拟器</h3>
+                    <div class="sub">拖动滑块 · 观察人类活动如何打破碳循环平衡</div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0;">
+                        <div style="background:#f6fafd;border-radius:14px;padding:12px;text-align:center;border:1px solid #eaf0f5;">
+                            <div style="font-size:12px;color:#7a9aa8;">🌤️ 大气圈</div>
+                            <div style="font-size:28px;font-weight:700;color:#e8b84a;" id="tp2_atmo">420</div>
+                            <div style="font-size:11px;color:#7a9aa8;">ppm CO₂</div>
+                            <div style="height:4px;background:#eaf0f5;border-radius:4px;margin-top:4px;overflow:hidden;">
+                                <div style="height:100%;width:70%;background:#e8b84a;border-radius:4px;" id="tp2_atmoBar"></div>
+                            </div>
+                        </div>
+                        <div style="background:#f6fafd;border-radius:14px;padding:12px;text-align:center;border:1px solid #eaf0f5;">
+                            <div style="font-size:12px;color:#7a9aa8;">🌿 生物圈</div>
+                            <div style="font-size:28px;font-weight:700;color:#5cad6f;" id="tp2_bio">580</div>
+                            <div style="font-size:11px;color:#7a9aa8;">Gt C</div>
+                            <div style="height:4px;background:#eaf0f5;border-radius:4px;margin-top:4px;overflow:hidden;">
+                                <div style="height:100%;width:58%;background:#5cad6f;border-radius:4px;" id="tp2_bioBar"></div>
+                            </div>
+                        </div>
+                        <div style="background:#f6fafd;border-radius:14px;padding:12px;text-align:center;border:1px solid #eaf0f5;">
+                            <div style="font-size:12px;color:#7a9aa8;">🌊 水圈</div>
+                            <div style="font-size:28px;font-weight:700;color:#4a9ec9;" id="tp2_ocean">38000</div>
+                            <div style="font-size:11px;color:#7a9aa8;">Gt C</div>
+                            <div style="height:4px;background:#eaf0f5;border-radius:4px;margin-top:4px;overflow:hidden;">
+                                <div style="height:100%;width:45%;background:#4a9ec9;border-radius:4px;" id="tp2_oceanBar"></div>
+                            </div>
+                        </div>
+                        <div style="background:#f6fafd;border-radius:14px;padding:12px;text-align:center;border:1px solid #eaf0f5;">
+                            <div style="font-size:12px;color:#7a9aa8;">⛰️ 岩石圈</div>
+                            <div style="font-size:28px;font-weight:700;color:#b08a6b;" id="tp2_rock">4200</div>
+                            <div style="font-size:11px;color:#7a9aa8;">Gt C (可开采)</div>
+                            <div style="height:4px;background:#eaf0f5;border-radius:4px;margin-top:4px;overflow:hidden;">
+                                <div style="height:100%;width:35%;background:#b08a6b;border-radius:4px;" id="tp2_rockBar"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slider-group">
+                        <label>🔥 化石燃料使用量 <span id="tp2_fuelLabel">60%</span>
+                            <input type="range" id="tp2_fuelSlider" min="0" max="100" value="60" />
+                        </label>
+                        <label>🌳 森林覆盖率 <span id="tp2_forestLabel">65%</span>
+                            <input type="range" id="tp2_forestSlider" min="20" max="100" value="65" />
+                        </label>
+                    </div>
+                    <div class="metric-grid">
+                        <div class="metric-item"><div class="val" id="tp2_co2">420</div><div class="lbl">CO₂ (ppm)</div></div>
+                        <div class="metric-item"><div class="val" id="tp2_temp">+1.2</div><div class="lbl">温升 (℃)</div></div>
+                        <div class="metric-item"><div class="val" id="tp2_status" style="font-size:18px;color:#f5c542;">⚠️ 警戒</div><div class="lbl">系统状态</div></div>
+                    </div>
+                    <div style="background:#f6fafd;border-radius:12px;padding:10px 16px;font-size:13px;color:#3a5a6a;text-align:center;" id="tp2_msg">
+                        💡 当前碳循环处于 <strong>轻度失衡</strong> 状态。
+                    </div>
+                </div>
+            </div>
+
+            <!-- ======================================================= -->
+            <!-- TAB 3 全球影响 (Chart.js) -->
+            <!-- ======================================================= -->
+            <div class="tab-pane" id="tab3">
+                <div class="tool-card">
+                    <h3>📊 全球气候变化 · 影响模拟器</h3>
+                    <div class="sub">拖动温升滑块 · 观察连锁反应</div>
+                    <div class="slider-group">
+                        <label>🌡️ 全球温升 <span id="tp3_tempLabel">+1.2 °C</span>
+                            <input type="range" id="tp3_tempSlider" min="0" max="50" value="12" step="1" />
+                        </label>
+                        <label>📅 模拟年份 <span id="tp3_yearLabel">~2040</span>
+                            <div style="flex:1;height:4px;background:#d0dee8;border-radius:4px;">
+                                <div id="tp3_yearProgress" style="height:100%;width:20%;background:linear-gradient(to right,#4a9a6a,#d4b84a,#b54a3a);border-radius:4px;"></div>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="metric-grid">
+                        <div class="metric-item"><div class="val" id="tp3_co2">420</div><div class="lbl">CO₂ (ppm)</div></div>
+                        <div class="metric-item"><div class="val" id="tp3_sea">0.18</div><div class="lbl">海平面 (m)</div></div>
+                        <div class="metric-item"><div class="val" id="tp3_ice">-15</div><div class="lbl">北极海冰 (%)</div></div>
+                        <div class="metric-item"><div class="val" id="tp3_extreme">+28</div><div class="lbl">极端天气 (%)</div></div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px;">
+                        <div style="background:#fafdff;border-radius:16px;padding:12px;border:1px solid #eaf0f5;">
+                            <div style="font-weight:500;font-size:14px;color:#1a3a4a;margin-bottom:4px;">🏭 主要排放国</div>
+                            <canvas id="tp3_emissionsChart" height="140"></canvas>
+                        </div>
+                        <div style="background:#fafdff;border-radius:16px;padding:12px;border:1px solid #eaf0f5;">
+                            <div style="font-weight:500;font-size:14px;color:#1a3a4a;margin-bottom:4px;">🌊 海平面影响</div>
+                            <canvas id="tp3_seaChart" height="140"></canvas>
+                        </div>
+                    </div>
+                    <div style="background:#f0f6fc;border-radius:30px;padding:10px 18px;text-align:center;font-size:14px;color:#1a3a4a;border:1px solid #dce8ef;margin-top:12px;" id="tp3_status">
+                        💡 温升 <strong>+1.2°C</strong> · 全球风险等级 <strong style="color:#4a9a6a;">低</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ======================================================= -->
+            <!-- TAB 4 因果链 -->
+            <!-- ======================================================= -->
+            <div class="tab-pane" id="tab4">
+                <div class="tool-card">
+                    <h3>🧩 碳排放 · 因果链</h3>
+                    <div class="sub">拖拽卡片 · 按因果顺序排列</div>
+                    <div style="background:#f0f8f4;border-radius:12px;padding:8px 14px;font-size:13px;color:#1a4d3a;border-left:3px solid #1f7a5a;margin-bottom:12px;">
+                        🖱️ 从原因到结果，从上到下排列，点击「验证」检查
+                    </div>
+                    <div class="sort-area" id="tp6_sortArea"></div>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;">
+                        <button class="btn btn-primary btn-sm" id="tp6_verifyBtn">✅ 验证顺序</button>
+                        <button class="btn btn-outline btn-sm" id="tp6_resetBtn">🔄 重置</button>
+                        <button class="btn btn-outline btn-sm" id="tp6_hintBtn">💡 提示</button>
+                    </div>
+                    <div id="tp6_feedback" style="margin-top:10px;display:none;padding:12px 16px;border-radius:12px;font-size:14px;"></div>
+                    <div id="tp6_stats" style="font-size:13px;color:#4d7868;margin-top:6px;"></div>
+                </div>
+            </div>
+
+            <!-- ======================================================= -->
+            <!-- TAB 5 气候谈判 -->
+            <!-- ======================================================= -->
+            <div class="tab-pane" id="tab5">
+                <div class="tool-card">
+                    <h3>🤝 气候谈判 · 多角色对谈模拟</h3>
+                    <div class="sub">各代表选择策略 · 系统模拟谈判走向</div>
+                    <div class="role-grid" id="tp7_roleGrid"></div>
+                    <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 16px;background:#f6fafd;border-radius:16px;border:1px solid #dce8ef;margin:10px 0;">
+                        <span style="font-size:14px;color:#1a3a4a;">🗣️ 第 <strong id="tp7_roundNum">1</strong> 轮 · 共识 <strong id="tp7_agreeCount">0</strong>%</span>
+                        <button class="btn btn-primary btn-sm" id="tp7_negotiateBtn">⚡ 推进谈判</button>
+                        <button class="btn btn-outline btn-sm" id="tp7_resetBtn">↺ 重置</button>
+                        <button class="btn btn-outline btn-sm" id="tp7_autoBtn">🤖 自动均衡</button>
+                    </div>
+                    <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;">
+                        <div>
+                            <div class="feedback-box" id="tp7_feedback">
+                                <span style="color:#7a9aa8;">各代表选择策略后，点击「推进谈判」模拟多轮博弈。</span>
+                            </div>
+                            <div class="agreement-bar"><div class="fill" id="tp7_agreementFill" style="width:0%;"></div></div>
+                        </div>
+                        <div style="background:#fafdff;border-radius:16px;padding:12px 16px;border:1px solid #eaf0f5;max-height:180px;overflow-y:auto;">
+                            <div style="font-weight:600;font-size:13px;color:#1a3a4a;margin-bottom:4px;">📜 谈判日志</div>
+                            <div id="tp7_logList"><div style="font-size:13px;color:#7a9aa8;">— 暂无记录 —</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ======================================================= -->
+            <!-- TAB 6 碳足迹 -->
+            <!-- ======================================================= -->
+            <div class="tab-pane" id="tab6">
+                <div class="tool-card">
+                    <h3>🌍 我的碳足迹 · 测算器</h3>
+                    <div class="sub">记录日常行为 · 测算个人碳排放</div>
+                    <div class="footprint-grid">
+                        <!-- 左侧：表单 -->
+                        <div>
+                            <div class="fp-card">
+                                <div class="fp-title">🚗 日常通勤</div>
+                                <div class="fp-item">
+                                    <label>每日通勤距离 <span id="fp_distValue">10 km</span></label>
+                                    <input type="range" id="fp_distance" min="0" max="50" value="10" step="1" />
+                                </div>
+                                <div class="fp-item">
+                                    <label>主要方式</label>
+                                    <select id="fp_transport">
+                                        <option value="car">燃油私家车</option>
+                                        <option value="bus">公交车 / 地铁</option>
+                                        <option value="rail">高铁 / 动车</option>
+                                        <option value="bike">步行 / 自行车 (零碳)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="fp-card">
+                                <div class="fp-title">💡 家庭用电 (日均)</div>
+                                <div class="fp-item">
+                                    <label>每日用电量 <span id="fp_elecValue">5 度</span></label>
+                                    <input type="range" id="fp_electricity" min="0" max="20" value="5" step="0.5" />
+                                </div>
+                            </div>
+                            <div class="fp-card">
+                                <div class="fp-title">🥩 饮食结构</div>
+                                <div class="fp-radio-group" id="fp_dietGroup">
+                                    <input type="radio" name="fp_diet" id="fp_diet_high" value="high">
+                                    <label for="fp_diet_high">🥩 肉食为主</label>
+                                    <input type="radio" name="fp_diet" id="fp_diet_med" value="med" checked>
+                                    <label for="fp_diet_med">🍗 荤素均衡</label>
+                                    <input type="radio" name="fp_diet" id="fp_diet_low" value="low">
+                                    <label for="fp_diet_low">🥗 素食为主</label>
+                                </div>
+                            </div>
+                            <div class="fp-card">
+                                <div class="fp-title">♻️ 垃圾回收</div>
+                                <div class="fp-radio-group" id="fp_recycleGroup">
+                                    <input type="radio" name="fp_recycle" id="fp_rec_good" value="good" checked>
+                                    <label for="fp_rec_good">✅ 严格分类</label>
+                                    <input type="radio" name="fp_recycle" id="fp_rec_med" value="med">
+                                    <label for="fp_rec_med">📦 偶尔分类</label>
+                                    <input type="radio" name="fp_recycle" id="fp_rec_bad" value="bad">
+                                    <label for="fp_rec_bad">❌ 混合丢弃</label>
+                                </div>
+                            </div>
+                            <div style="font-size:12px;color:#7a9aa8;text-align:right;">⚡ 基于中国平均碳排放因子估算</div>
+                        </div>
+
+                        <!-- 右侧：结果 -->
+                        <div class="fp-result" id="fp_resultPanel">
+                            <div class="fp-big">
+                                <div class="label">🌫️ 日均 CO₂ 排放</div>
+                                <div>
+                                    <span class="number" id="fp_totalCarbon">6.8</span>
+                                    <span class="unit">kg</span>
+                                </div>
+                                <div style="font-size:14px;color:#aacfb5;margin-top:4px;">
+                                    相当于 <span id="fp_yearlyCarbon">2,482</span> kg / 年
+                                </div>
+                            </div>
+                            <div class="fp-tree">
+                                🌳 需要 <span id="fp_treeCount">138</span> 棵树
+                                <small>才能吸收您一年的碳排放</small>
+                            </div>
+                            <div class="fp-msg" id="fp_statusMsg">
+                                🌱 您的碳足迹处于中等水平。尝试多乘坐公共交通、节约用电，为生态安全助力！
+                            </div>
+                            <div class="fp-reset" id="fp_resetBtn">🔄 重置为典型值 (课堂探究)</div>
+                        </div>
+                    </div>
+                    <div class="fp-note">
+                        * 电力因子 0.6kg CO₂/度 · 燃油车 0.2kg CO₂/km · 公交 0.03kg CO₂/km · 每棵树年均固碳 18kg
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /tab-content -->
+    </div><!-- /app-container -->
+
+    <script>
+        // ============================================================
+        // 1. Tab 切换
+        // ============================================================
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const panes = document.querySelectorAll('.tab-pane');
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                tabBtns.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const target = this.dataset.tab;
+                panes.forEach(p => p.classList.remove('active'));
+                document.getElementById(target).classList.add('active');
+            });
+        });
+
+        // ============================================================
+        // 2. TAB 1 临界点
+        // ============================================================
+        (function() {
+            const slider = document.getElementById('tp1_slider');
+            const label = document.getElementById('tp1_tempLabel');
+            const levelEl = document.getElementById('tp1_levelLabel');
+            const titleEl = document.getElementById('tp1_title');
+            const detailEl = document.getElementById('tp1_detail');
+            const riskBar = document.getElementById('tp1_riskBar');
+            const SCENARIOS = [
+                { maxTemp: 0.8, level: '● 安全', color: '#5cad6f', title: '工业革命前水平',
+                    detail: '全球平均气温处于自然波动范围内。碳循环基本平衡，气候系统稳定。' },
+                { maxTemp: 1.2, level: '● 低风险', color: '#5cad6f', title: '当前状态 (1.2°C)',
+                    detail: '全球平均气温较工业革命前上升约 1.2°C。极端天气事件频率增加，但尚未触发大规模不可逆变化。' },
+                { maxTemp: 1.5, level: '● 警戒', color: '#e8b84a', title: '1.5°C 目标临界',
+                    detail: '《巴黎协定》设定的理想控制目标。此温升下，珊瑚礁将减少 70-90%，北极夏季无冰概率大增。' },
+                { maxTemp: 2.0, level: '● 危险', color: '#d97a4a', title: '2.0°C 红线突破',
+                    detail: 'IPCC 设定的"危险"阈值。格陵兰冰盖加速融化，全球粮食减产风险显著上升，约 37% 物种面临灭绝风险。' },
+                { maxTemp: 3.0, level: '● 高危', color: '#c0392b', title: '3.0°C 系统性崩溃',
+                    detail: '亚马孙雨林转向碳源，冻土大规模融化释放巨量甲烷，正反馈全面启动。沿海城市面临海平面上升 1-3 米威胁。' },
+                { maxTemp: 4.0, level: '● 临界', color: '#7a1f1a', title: '4.0°C 不可逆变化',
+                    detail: '地球进入"温室地球"状态。南极西部冰盖崩塌，海平面上升 5-10 米。全球大部分地区不再适宜当前农业模式。' },
+                { maxTemp: 5.0, level: '● 灭绝级', color: '#4a0e0a', title: '5.0°C 文明危机',
+                    detail: '部分气候模型预测的"最坏情景"。地球平均温度接近始新世-渐新世极热事件水平。大规模物种灭绝，人类文明面临存续危机。' }
+            ];
+            const colors = ['#2b7a4a', '#5cad6f', '#e8b84a', '#d97a4a', '#c0392b', '#7a1f1a'];
+
+            function update() {
+                const val = parseFloat(slider.value);
+                const temp = (val / 10).toFixed(1);
+                label.textContent = '+' + temp + ' °C';
+                const t = parseFloat(temp);
+                let sc;
+                if (t < 0.9) sc = SCENARIOS[0];
+                else if (t < 1.3) sc = SCENARIOS[1];
+                else if (t < 1.7) sc = SCENARIOS[2];
+                else if (t < 2.4) sc = SCENARIOS[3];
+                else if (t < 3.4) sc = SCENARIOS[4];
+                else if (t < 4.4) sc = SCENARIOS[5];
+                else sc = SCENARIOS[6];
+                levelEl.textContent = sc.level;
+                levelEl.style.color = sc.color;
+                titleEl.textContent = sc.title;
+                detailEl.textContent = sc.detail;
+                const idx = SCENARIOS.indexOf(sc);
+                const dots = riskBar.querySelectorAll('div');
+                dots.forEach((dot, i) => {
+                    dot.style.background = i <= idx ? colors[i] : '#1f3a42';
+                });
+            }
+            slider.addEventListener('input', update);
+            update();
+        })();
+
+        // ============================================================
+        // 3. TAB 2 碳循环
+        // ============================================================
+        (function() {
+            const fuelS = document.getElementById('tp2_fuelSlider');
+            const forestS = document.getElementById('tp2_forestSlider');
+            const fuelL = document.getElementById('tp2_fuelLabel');
+            const forestL = document.getElementById('tp2_forestLabel');
+            const atmoV = document.getElementById('tp2_atmo');
+            const bioV = document.getElementById('tp2_bio');
+            const oceanV = document.getElementById('tp2_ocean');
+            const rockV = document.getElementById('tp2_rock');
+            const atmoB = document.getElementById('tp2_atmoBar');
+            const bioB = document.getElementById('tp2_bioBar');
+            const oceanB = document.getElementById('tp2_oceanBar');
+            const rockB = document.getElementById('tp2_rockBar');
+            const co2D = document.getElementById('tp2_co2');
+            const tempD = document.getElementById('tp2_temp');
+            const statusD = document.getElementById('tp2_status');
+            const msgD = document.getElementById('tp2_msg');
+            const BASE_ATMO = 280,
+                BASE_BIO = 600,
+                BASE_OCEAN = 38000,
+                BASE_ROCK = 5000;
+
+            function update() {
+                const fuel = parseFloat(fuelS.value);
+                const forest = parseFloat(forestS.value);
+                fuelL.textContent = fuel + '%';
+                forestL.textContent = forest + '%';
+                const fuelFactor = fuel / 100;
+                const forestLoss = (100 - forest) / 80 * 200;
+                let atmo = BASE_ATMO + fuelFactor * 220 - (forest / 100) * 20;
+                let bio = BASE_BIO - forestLoss + fuelFactor * 30;
+                let ocean = BASE_OCEAN + fuelFactor * 80 - (forest / 100) * 10;
+                let rock = BASE_ROCK - fuelFactor * 600;
+                atmo = Math.max(300, Math.min(600, atmo));
+                bio = Math.max(350, Math.min(650, bio));
+                ocean = Math.max(37000, Math.min(38500, ocean));
+                rock = Math.max(3500, Math.min(5000, rock));
+                atmoV.textContent = Math.round(atmo);
+                bioV.textContent = Math.round(bio);
+                oceanV.textContent = Math.round(ocean);
+                rockV.textContent = Math.round(rock);
+                atmoB.style.width = ((atmo - 280) / 320 * 100) + '%';
+                bioB.style.width = ((bio - 350) / 300 * 100) + '%';
+                oceanB.style.width = ((ocean - 37000) / 1500 * 100) + '%';
+                rockB.style.width = ((5000 - rock) / 1500 * 100) + '%';
+                const co2 = Math.round(atmo);
+                co2D.textContent = co2;
+                const temp = ((co2 - 280) / 280 * 1.8 + 0.2).toFixed(1);
+                tempD.textContent = '+' + temp;
+                if (co2 < 350) {
+                    statusD.textContent = '✅ 安全';
+                    statusD.style.color = '#5cad6f';
+                    msgD.innerHTML = '🌱 碳循环处于 <strong>平衡</strong> 状态。生态系统碳汇功能正常。';
+                } else if (co2 < 420) {
+                    statusD.textContent = '⚠️ 警戒';
+                    statusD.style.color = '#f5c542';
+                    msgD.innerHTML = '💡 碳循环处于 <strong>轻度失衡</strong> 状态。化石燃料排放已显著增加大气碳库。';
+                } else if (co2 < 470) {
+                    statusD.textContent = '🔴 危险';
+                    statusD.style.color = '#e8695a';
+                    msgD.innerHTML = '🔥 碳循环 <strong>严重失衡</strong>！正反馈开始启动——冻土融化释放甲烷。';
+                } else {
+                    statusD.textContent = '💀 临界';
+                    statusD.style.color = '#ff2d1a';
+                    msgD.innerHTML = '⚠️ 已突破 <strong>气候临界点</strong>！本世纪内温升将超过3°C。';
+                }
+            }
+            fuelS.addEventListener('input', update);
+            forestS.addEventListener('input', update);
+            update();
+        })();
+
+        // ============================================================
+        // 4. TAB 3 全球影响 (Chart.js)
+        // ============================================================
+        (function() {
+            const slider = document.getElementById('tp3_tempSlider');
+            const label = document.getElementById('tp3_tempLabel');
+            const yearL = document.getElementById('tp3_yearLabel');
+            const yearP = document.getElementById('tp3_yearProgress');
+            const co2D = document.getElementById('tp3_co2');
+            const seaD = document.getElementById('tp3_sea');
+            const iceD = document.getElementById('tp3_ice');
+            const extD = document.getElementById('tp3_extreme');
+            const statusD = document.getElementById('tp3_status');
+            const baseEmissions = { '中国': 11.5, '美国': 6.2, '欧盟': 3.8, '印度': 3.2, '俄罗斯': 2.1, '日本': 1.6 };
+            const baseSea = { '图瓦卢': 0.5, '马尔代夫': 0.8, '荷兰': 0.3, '孟加拉国': 0.6, '越南': 0.4, '美国': 0.2 };
+            let emChart, seaChart;
+
+            function initCharts() {
+                const ctx1 = document.getElementById('tp3_emissionsChart').getContext('2d');
+                emChart = new Chart(ctx1, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(baseEmissions),
+                        datasets: [{ label: 'Gt CO₂', data: Object.values(baseEmissions),
+                            backgroundColor: ['#1a5cff', '#2b8cff', '#4a9ec9', '#6ab0d4', '#8bc2df',
+                                '#aad4ea'
+                            ], borderRadius: 4 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true, grid: { color: '#eaf0f5' } } } }
+                });
+                const ctx2 = document.getElementById('tp3_seaChart').getContext('2d');
+                seaChart = new Chart(ctx2, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(baseSea),
+                        datasets: [{ label: 'm', data: Object.values(baseSea),
+                            backgroundColor: ['#4a9ec9', '#6ab0d4', '#8bc2df', '#aad4ea', '#c8e6f0',
+                                '#e6f4fa'
+                            ], borderRadius: 4 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true, grid: { color: '#eaf0f5' } } } }
+                });
+            }
+
+            function update() {
+                const raw = parseFloat(slider.value);
+                const temp = (raw / 10).toFixed(1);
+                const tn = parseFloat(temp);
+                label.textContent = '+' + temp + ' °C';
+                const co2 = Math.round(280 + raw * 4.5);
+                const sea = (raw * 0.015).toFixed(2);
+                const ice = Math.round(-5 - raw * 1.0);
+                const ext = Math.round(10 + raw * 1.8);
+                let year = Math.min(2100, 2025 + Math.round(raw * 1.8));
+                yearL.textContent = '~' + year;
+                yearP.style.width = Math.min(raw / 50 * 100, 100) + '%';
+                co2D.textContent = co2;
+                seaD.textContent = sea;
+                iceD.textContent = ice;
+                extD.textContent = '+' + ext;
+                let lvl, col;
+                if (tn < 1.5) { lvl = '低';
+                    col = '#4a9a6a'; } else if (tn < 2.5) { lvl = '中';
+                    col = '#d4a02b'; } else if (tn < 3.5) { lvl = '高';
+                    col = '#c07a3a'; } else { lvl = '极高';
+                    col = '#b54a3a'; }
+                statusD.innerHTML = '💡 温升 <strong>+' + temp + '°C</strong> · 全球风险等级 <strong style="color:' + col +
+                    ';">' + lvl + '</strong> · CO₂ ' + co2 + 'ppm · 海平面 ' + sea + 'm';
+                const factor = 1 + tn * 0.15;
+                const newEm = Object.values(baseEmissions).map(v => +(v * factor).toFixed(1));
+                emChart.data.datasets[0].data = newEm;
+                emChart.update();
+                const seaFactor = 1 + tn * 0.4;
+                const newSea = Object.values(baseSea).map(v => +(v * seaFactor).toFixed(2));
+                seaChart.data.datasets[0].data = newSea;
+                seaChart.update();
+                const vals = document.querySelectorAll('#tab3 .metric-item .val');
+                if (tn > 3.0) vals.forEach(el => el.className = 'val danger');
+                else if (tn > 1.8) vals.forEach(el => el.className = 'val warning');
+                else vals.forEach(el => el.className = 'val');
+            }
+            slider.addEventListener('input', update);
+            initCharts();
+            setTimeout(update, 100);
+        })();
+
+        // ============================================================
+        // 5. TAB 4 拖拽排序
+        // ============================================================
+        (function() {
+            const CORRECT = [
+                { id: 0, label: '🏭 工厂、汽车大量排放 CO₂' },
+                { id: 1, label: '🌫️ 大气温室效应增强' },
+                { id: 2, label: '🌡️ 全球平均气温持续上升' },
+                { id: 3, label: '🧊 极地冰川、高山冰雪加速融化' },
+                { id: 4, label: '🌊 海平面逐渐上升' },
+                { id: 5, label: '🏙️ 沿海城市被淹风险增加' },
+                { id: 6, label: '🚶 居民被迫向内陆迁移' },
+                { id: 7, label: '🛡️ 国家生存空间受到威胁' }
+            ];
+            let items = [];
+
+            function shuffle(a) {
+                for (let i = a.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [a[i], a[j]] = [a[j], a[i]];
+                }
+                return a;
+            }
+
+            function render() {
+                const area = document.getElementById('tp6_sortArea');
+                area.innerHTML = '';
+                items.forEach((item, idx) => {
+                    const div = document.createElement('div');
+                    div.className = 'sort-item';
+                    div.draggable = true;
+                    div.dataset.id = item.id;
+                    div.dataset.idx = idx;
+                    div.innerHTML = `<span class="num">#${idx+1}</span><span>${item.label}</span>`;
+                    area.appendChild(div);
+                });
+                document.getElementById('tp6_feedback').style.display = 'none';
+                document.getElementById('tp6_stats').innerHTML = '';
+                bindDrag();
+            }
+
+            function bindDrag() {
+                const els = document.querySelectorAll('#tp6_sortArea .sort-item');
+                els.forEach(el => {
+                    el.addEventListener('dragstart', function(e) {
+                        this.classList.add('dragging');
+                        e.dataTransfer.effectAllowed = 'move';
+                        e.dataTransfer.setData('text/plain', this.dataset.idx);
+                    });
+                    el.addEventListener('dragend', function() {
+                        this.classList.remove('dragging');
+                        document.querySelectorAll('#tp6_sortArea .sort-item').forEach(c => c.classList
+                            .remove('drag-over'));
+                    });
+                    el.addEventListener('dragover', function(e) {
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = 'move';
+                        document.querySelectorAll('#tp6_sortArea .sort-item').forEach(c => c.classList
+                            .remove('drag-over'));
+                        this.classList.add('drag-over');
+                    });
+                    el.addEventListener('dragleave', function() { this.classList.remove('drag-over'); });
+                    el.addEventListener('drop', function(e) {
+                        e.preventDefault();
+                        this.classList.remove('drag-over');
+                        const fromIdx = parseInt(e.dataTransfer.getData('text/plain'));
+                        const toIdx = parseInt(this.dataset.idx);
+                        if (fromIdx === toIdx) return;
+                        const newItems = [...items];
+                        [newItems[fromIdx], newItems[toIdx]] = [newItems[toIdx], newItems[fromIdx]];
+                        items = newItems;
+                        render();
+                    });
+                });
+            }
+
+            function verify() {
+                const fb = document.getElementById('tp6_feedback');
+                const stats = document.getElementById('tp6_stats');
+                const ids = items.map(i => i.id);
+                const correct = CORRECT.map(i => i.id);
+                let correctCount = 0;
+                const cardEls = document.querySelectorAll('#tp6_sortArea .sort-item');
+                cardEls.forEach((el, idx) => {
+                    el.classList.remove('correct', 'wrong');
+                    if (parseInt(el.dataset.id) === correct[idx]) {
+                        el.classList.add('correct');
+                        correctCount++;
+                    } else {
+                        el.classList.add('wrong');
+                    }
+                });
+                fb.style.display = 'block';
+                if (correctCount === CORRECT.length) {
+                    fb.className = 'feedback-box';
+                    fb.style.borderLeftColor = '#1f8a5a';
+                    fb.innerHTML = '🎉 <strong>完全正确！</strong> 你已准确理解了碳排放如何通过温室效应最终威胁国家安全。';
+                    stats.innerHTML = '✅ 全部正确！因果链条清晰完整。';
+                } else {
+                    fb.className = 'feedback-box';
+                    fb.style.borderLeftColor = '#d97a4a';
+                    fb.innerHTML =
+                        `🔄 已纠正 <strong>${correctCount}/${CORRECT.length}</strong> 个位置。标 <span style="color:#d97a4a;">橙色</span> 的卡片位置有误，请重新调整。`;
+                    stats.innerHTML =
+                        `📊 正确率：<strong>${Math.round(correctCount/CORRECT.length*100)}%</strong>，继续加油！`;
+                }
+            }
+
+            function resetGame() {
+                items = shuffle([...CORRECT]);
+                render();
+            }
+
+            function showHint() {
+                const fb = document.getElementById('tp6_feedback');
+                fb.style.display = 'block';
+                fb.className = 'feedback-box';
+                fb.style.borderLeftColor = '#1a5cff';
+                fb.innerHTML =
+                    '💡 想想看：<strong>排放</strong> → <strong>大气效应</strong> → <strong>温度变化</strong> → <strong>冰雪融化</strong> → <strong>海平面</strong> → <strong>沿海城市</strong> → <strong>人口迁移</strong> → <strong>国家安全</strong>';
+            }
+
+            resetGame();
+            document.getElementById('tp6_verifyBtn').addEventListener('click', verify);
+            document.getElementById('tp6_resetBtn').addEventListener('click', resetGame);
+            document.getElementById('tp6_hintBtn').addEventListener('click', showHint);
+        })();
+
+        // ============================================================
+        // 6. TAB 5 气候谈判
+        // ============================================================
+        (function() {
+            const ROLES = [
+                { id: 'us', name: '美国', emoji: '🇺🇸', desc: '发达国家，历史排放最大' },
+                { id: 'eu', name: '欧盟', emoji: '🇪🇺', desc: '积极减排，重视技术领导力' },
+                { id: 'china', name: '中国', emoji: '🇨🇳', desc: '最大排放国，强调发展权' },
+                { id: 'india', name: '印度', emoji: '🇮🇳', desc: '发展中国家，需资金技术支持' },
+                { id: 'ais', name: '小岛国联盟', emoji: '🏝️', desc: '生存受直接威胁，要求1.5°C' }
+            ];
+            const OPTS = {
+                emission: [
+                    { value: 'radical', label: '激进 (50%+)' },
+                    { value: 'moderate', label: '适度 (30%)' },
+                    { value: 'mild', label: '温和 (15%)' },
+                    { value: 'none', label: '不承诺' }
+                ],
+                funding: [
+                    { value: 'high', label: '大幅增加' },
+                    { value: 'medium', label: '适度增加' },
+                    { value: 'low', label: '维持' },
+                    { value: 'none', label: '不提供' }
+                ],
+                tech: [
+                    { value: 'open', label: '全面开放' },
+                    { value: 'limited', label: '有条件' },
+                    { value: 'none', label: '不转让' }
+                ]
+            };
+            const PREF = { 'us': { emission: 0.4, funding: 0.3, tech: 0.3 }, 'eu': { emission: 0.5, funding: 0.2,
+                    tech: 0.3 }, 'china': { emission: 0.3, funding: 0.4, tech: 0.3 }, 'india': { emission: 0.2,
+                    funding: 0.5, tech: 0.3 }, 'ais': { emission: 0.6, funding: 0.3, tech: 0.1 } };
+            const SCORE = { emission: { radical: 1, moderate: 0.6, mild: 0.3, none: 0 }, funding: { high: 1,
+                    medium: 0.6, low: 0.3, none: 0 }, tech: { open: 1, limited: 0.5, none: 0 } };
+
+            let state = {
+                round: 1,
+                choices: {},
+                logs: [],
+                agreement: 0
+            };
+            ROLES.forEach(r => { state.choices[r.id] = { emission: 'moderate', funding: 'medium', tech: 'limited' }; });
+
+            function renderRoles() {
+                const grid = document.getElementById('tp7_roleGrid');
+                grid.innerHTML = '';
+                ROLES.forEach(role => {
+                    const card = document.createElement('div');
+                    card.className = 'role-card';
+                    const emOpts = OPTS.emission.map(o =>
+                        `<option value="${o.value}" ${state.choices[role.id].emission===o.value?'selected':''}>${o.label}</option>`
+                        ).join('');
+                    const fuOpts = OPTS.funding.map(o =>
+                        `<option value="${o.value}" ${state.choices[role.id].funding===o.value?'selected':''}>${o.label}</option>`
+                        ).join('');
+                    const techOpts = OPTS.tech.map(o =>
+                        `<option value="${o.value}" ${state.choices[role.id].tech===o.value?'selected':''}>${o.label}</option>`
+                        ).join('');
+                    card.innerHTML =
+                        `
+                        <div class="header">${role.emoji} ${role.name}</div>
+                        <div class="desc">${role.desc}</div>
+                        <select data-role="${role.id}" data-dim="emission">${emOpts}</select>
+                        <select data-role="${role.id}" data-dim="funding">${fuOpts}</select>
+                        <select data-role="${role.id}" data-dim="tech">${techOpts}</select>
+                        <div class="status" id="tp7_status_${role.id}">📋 待表态</div>
+                    `;
+                    grid.appendChild(card);
+                    card.querySelectorAll('select').forEach(sel => {
+                        sel.addEventListener('change', function() {
+                            const rid = this.dataset.role;
+                            const dim = this.dataset.dim;
+                            state.choices[rid][dim] = this.value;
+                            updateStatus(rid);
+                        });
+                    });
+                    updateStatus(role.id);
+                });
+            }
+
+            function updateStatus(rid) {
+                const c = state.choices[rid];
+                const el = document.getElementById('tp7_status_' + rid);
+                if (el) {
+                    const em = OPTS.emission.find(o => o.value === c.emission)?.label || c.emission;
+                    const fu = OPTS.funding.find(o => o.value === c.funding)?.label || c.funding;
+                    const tech = OPTS.tech.find(o => o.value === c.tech)?.label || c.tech;
+                    el.textContent = `📋 ${em} · ${fu} · ${tech}`;
+                }
+            }
+
+            function calcScores() {
+                const scores = {};
+                ROLES.forEach(r => {
+                    const c = state.choices[r.id];
+                    const p = PREF[r.id];
+                    const s = (SCORE.emission[c.emission] || 0) * p.emission +
+                        (SCORE.funding[c.funding] || 0) * p.funding +
+                        (SCORE.tech[c.tech] || 0) * p.tech;
+                    scores[r.id] = Math.round(s * 100);
+                });
+                return scores;
+            }
+
+            function calcAgreement(scores) {
+                const vals = Object.values(scores);
+                const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+                const std = Math.sqrt(vals.reduce((a, b) => a + Math.pow(b - avg, 2), 0) / vals.length);
+                return Math.round(Math.max(0, Math.min(100, avg - std * 0.8)));
+            }
+
+            function negotiate() {
+                const scores = calcScores();
+                const agreement = calcAgreement(scores);
+                state.agreement = agreement;
+
+                const roles = ROLES.map(r => ({ ...r, score: scores[r.id] }));
+                const maxR = roles.reduce((a, b) => a.score > b.score ? a : b);
+                const minR = roles.reduce((a, b) => a.score < b.score ? a : b);
+                let msgs = [];
+                let level = '';
+                if (agreement >= 75) {
+                    level = '🎉 高度共识';
+                    msgs.push(`第 ${state.round} 轮取得<strong style="color:#1f8a5a;">重大突破</strong>！各方在核心议题上达成一致。`);
+                    msgs.push(`💡 ${maxR.emoji} ${maxR.name} 的积极姿态带动了整体氛围。`);
+                } else if (agreement >= 50) {
+                    level = '🤝 部分进展';
+                    msgs.push(`第 ${state.round} 轮获得<strong style="color:#1a5cff;">实质性进展</strong>，多数议题达成初步共识。`);
+                    msgs.push(`⚠️ 但在 ${minR.emoji} ${minR.name} 等关键议题上仍存在分歧。`);
+                } else if (agreement >= 25) {
+                    level = '⚠️ 陷入僵局';
+                    msgs.push(`第 ${state.round} 轮<strong style="color:#d97a4a;">陷入僵局</strong>，各方立场差距过大。`);
+                    msgs.push(`🔄 建议 ${maxR.emoji} ${maxR.name} 与 ${minR.emoji} ${minR.name} 进行双边对话。`);
+                } else {
+                    level = '💥 谈判破裂';
+                    msgs.push(`第 ${state.round} 轮<strong style="color:#b54a3a;">破裂</strong>，各方未能弥合根本分歧。`);
+                    msgs.push(`🚨 气候危机不等人，国际社会面临严重挑战。`);
+                }
+                if (scores['ais'] < 30 && agreement < 50) {
+                    msgs.push('🌊 小岛国联盟发出紧急呼吁：必须采取更激进行动！');
+                }
+
+                const fb = document.getElementById('tp7_feedback');
+                let html = `<div style="font-weight:600;margin-bottom:4px;">${level} · 共识度 ${agreement}% · 平均得分 ${Math.round(roles.reduce((a,b)=>a+b.score,0)/roles.length)}</div>`;
+                msgs.forEach(m => { html += `<div style="margin-top:2px;">${m}</div>`; });
+                html +=
+                    `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;border-top:1px solid #eaf0f5;padding-top:8px;">`;
+                roles.forEach(r => {
+                    const col = r.score >= 60 ? '#1f8a5a' : (r.score >= 40 ? '#d4a02b' : '#b54a3a');
+                    html +=
+                        `<span style="font-size:12px;background:#f0f6fc;padding:2px 10px;border-radius:20px;">${r.emoji} ${r.name} <span style="font-weight:700;color:${col};">${r.score}</span></span>`;
+                });
+                html += `</div>`;
+                fb.innerHTML = html;
+
+                document.getElementById('tp7_agreementFill').style.width = agreement + '%';
+                document.getElementById('tp7_roundNum').textContent = state.round + 1;
+                document.getElementById('tp7_agreeCount').textContent = agreement;
+
+                const log = document.getElementById('tp7_logList');
+                if (state.logs.length === 0) log.innerHTML = '';
+                const entry = document.createElement('div');
+                entry.style.cssText =
+                    'font-size:12px;padding:3px 0;border-bottom:1px dashed #eef4f8;display:flex;justify-content:space-between;';
+                entry.innerHTML =
+                    `<span>第${state.round}轮 · 共识 ${agreement}%</span><span style="font-weight:600;color:#1a5cff;">${roles.map(r=>r.emoji+scores[r.id]).join(' ')}</span>`;
+                log.prepend(entry);
+                state.logs.push({ round: state.round, agreement, scores });
+                while (log.children.length > 8) log.removeChild(log.lastChild);
+
+                state.round++;
+                if (agreement >= 85) {
+                    fb.innerHTML +=
+                        `<div style="margin-top:8px;padding:10px 14px;background:#e6f5ee;border-radius:10px;border-left:3px solid #1f8a5a;">🎊 <strong>谈判成功！</strong> 各方已达成《全球气候共识》。</div>`;
+                    document.getElementById('tp7_negotiateBtn').disabled = true;
+                }
+            }
+
+            function resetGame() {
+                state.round = 1;
+                state.logs = [];
+                state.agreement = 0;
+                ROLES.forEach(r => { state.choices[r.id] = { emission: 'moderate', funding: 'medium',
+                        tech: 'limited' }; });
+                renderRoles();
+                document.getElementById('tp7_feedback').innerHTML =
+                    '<span style="color:#7a9aa8;">各代表选择策略后，点击「推进谈判」模拟多轮博弈。</span>';
+                document.getElementById('tp7_agreementFill').style.width = '0%';
+                document.getElementById('tp7_roundNum').textContent = '1';
+                document.getElementById('tp7_agreeCount').textContent = '0';
+                document.getElementById('tp7_logList').innerHTML =
+                    '<div style="font-size:13px;color:#7a9aa8;">— 暂无记录 —</div>';
+                document.getElementById('tp7_negotiateBtn').disabled = false;
+            }
+
+            function autoBalance() {
+                const autoMap = {
+                    'us': { emission: 'moderate', funding: 'medium', tech: 'limited' },
+                    'eu': { emission: 'radical', funding: 'high', tech: 'open' },
+                    'china': { emission: 'moderate', funding: 'high', tech: 'limited' },
+                    'india': { emission: 'mild', funding: 'high', tech: 'open' },
+                    'ais': { emission: 'radical', funding: 'high', tech: 'open' }
+                };
+                ROLES.forEach(r => {
+                    state.choices[r.id] = autoMap[r.id] || { emission: 'moderate', funding: 'medium',
+                        tech: 'limited' };
+                });
+                renderRoles();
+                setTimeout(negotiate, 300);
+            }
+
+            renderRoles();
+            document.getElementById('tp7_negotiateBtn').addEventListener('click', negotiate);
+            document.getElementById('tp7_resetBtn').addEventListener('click', resetGame);
+            document.getElementById('tp7_autoBtn').addEventListener('click', autoBalance);
+
+            // 初始演示
+            setTimeout(() => {
+                const initMap = {
+                    'us': { emission: 'moderate', funding: 'medium', tech: 'limited' },
+                    'eu': { emission: 'radical', funding: 'high', tech: 'open' },
+                    'china': { emission: 'moderate', funding: 'medium', tech: 'limited' },
+                    'india': { emission: 'mild', funding: 'high', tech: 'limited' },
+                    'ais': { emission: 'radical', funding: 'medium', tech: 'open' }
+                };
+                ROLES.forEach(r => { state.choices[r.id] = initMap[r.id]; });
+                renderRoles();
+                setTimeout(negotiate, 500);
+            }, 600);
+        })();
+
+        // ============================================================
+        // 7. TAB 6 碳足迹
+        // ============================================================
+        (function() {
+            // DOM 元素
+            const distanceSlider = document.getElementById('fp_distance');
+            const distValue = document.getElementById('fp_distValue');
+            const transportSelect = document.getElementById('fp_transport');
+            const electricitySlider = document.getElementById('fp_electricity');
+            const elecValue = document.getElementById('fp_elecValue');
+
+            const totalCarbonSpan = document.getElementById('fp_totalCarbon');
+            const yearlyCarbonSpan = document.getElementById('fp_yearlyCarbon');
+            const treeCountSpan = document.getElementById('fp_treeCount');
+            const statusMsg = document.getElementById('fp_statusMsg');
+            const resultPanel = document.getElementById('fp_resultPanel');
+
+            // 排放因子
+            const FACTORS = {
+                car: 0.20,
+                bus: 0.03,
+                rail: 0.02,
+                bike: 0.0,
+                electricity: 0.60,
+                diet: { high: 3.2, med: 1.9, low: 0.8 },
+                recycle: { good: 0.2, med: 0.8, bad: 1.5 }
+            };
+
+            function calculateCarbon() {
+                const dist = parseFloat(distanceSlider.value);
+                const mode = transportSelect.value;
+                const transportEm = dist * (FACTORS[mode] || 0);
+
+                const elec = parseFloat(electricitySlider.value);
+                const elecEm = elec * FACTORS.electricity;
+
+                const dietRadios = document.getElementsByName('fp_diet');
+                let dietEm = 1.9;
+                for (let r of dietRadios) {
+                    if (r.checked) { dietEm = FACTORS.diet[r.value]; break; }
+                }
+
+                const recRadios = document.getElementsByName('fp_recycle');
+                let recEm = 0.2;
+                for (let r of recRadios) {
+                    if (r.checked) { recEm = FACTORS.recycle[r.value]; break; }
+                }
+
+                let dailyTotal = transportEm + elecEm + dietEm + recEm;
+                dailyTotal = Math.round(dailyTotal * 10) / 10;
+                let yearlyTotal = Math.round(dailyTotal * 365);
+                let trees = Math.ceil(yearlyTotal / 18);
+
+                totalCarbonSpan.textContent = dailyTotal.toFixed(1);
+                yearlyCarbonSpan.textContent = yearlyTotal.toLocaleString();
+                treeCountSpan.textContent = trees;
+
+                let msg = '';
+                if (dailyTotal < 4) {
+                    msg = '🌟 低碳先锋！您的碳足迹很低，为减缓气候变暖做出了积极贡献。建议向同学分享您的环保习惯。';
+                } else if (dailyTotal < 7) {
+                    msg = '🌱 您的碳足迹处于中等水平。尝试多乘坐公共交通、节约用电，为生态安全助力！';
+                } else if (dailyTotal < 12) {
+                    msg = '🌿 碳足迹偏高。建议减少私家车出行，合理设定空调温度，践行垃圾分类，降低对生态系统的压力。';
+                } else {
+                    msg = '🌲 碳足迹较高，已接近生态承载力的"临界值"。请审视日常行为，绿色出行、节约资源，守护国家生态安全底线！';
+                }
+                statusMsg.textContent = msg;
+
+                if (dailyTotal > 10) {
+                    resultPanel.style.border = '2px solid #d9534f';
+                } else if (dailyTotal > 6) {
+                    resultPanel.style.border = '2px solid #f0ad4e';
+                } else {
+                    resultPanel.style.border = '2px solid #5cb85c';
+                }
+            }
+
+            function resetDefaults() {
+                distanceSlider.value = 10;
+                distValue.textContent = '10 km';
+                transportSelect.value = 'car';
+                electricitySlider.value = 5;
+                elecValue.textContent = '5 度';
+                document.getElementById('fp_diet_med').checked = true;
+                document.getElementById('fp_rec_good').checked = true;
+                calculateCarbon();
+            }
+
+            // 事件绑定
+            distanceSlider.addEventListener('input', function() {
+                distValue.textContent = this.value + ' km';
+                calculateCarbon();
+            });
+            transportSelect.addEventListener('change', calculateCarbon);
+            electricitySlider.addEventListener('input', function() {
+                elecValue.textContent = this.value + ' 度';
+                calculateCarbon();
+            });
+            document.querySelectorAll('#fp_dietGroup input, #fp_recycleGroup input').forEach(el => {
+                el.addEventListener('change', calculateCarbon);
+            });
+            document.getElementById('fp_resetBtn').addEventListener('click', resetDefaults);
+
+            calculateCarbon();
+        })();
+
+        console.log('🌍 气候变化教学工具箱 · 完整版已加载');
+        console.log('📚 包含 6 个互动工具：临界点 · 碳循环 · 全球影响 · 因果链 · 气候谈判 · 碳足迹');
+    </script>
+</body>
+</html>
